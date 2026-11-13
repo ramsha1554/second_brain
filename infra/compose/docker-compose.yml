@@ -1,3 +1,11 @@
+# Second Brain local development environment (Phase 0).
+# Storage (S3-compatible object storage) returns in Phase 1 with a proper garage.toml;
+# this compose file intentionally runs only postgres and redis for Phase 0.
+#
+# To create .env: copy .env.example to .env and adjust values.
+#   copy .env.example .env    (Windows cmd.exe / PowerShell)
+#   cp .env.example .env      (POSIX sh)
+# .env is git-ignored; never commit real secrets.
 services:
   postgres:
     image: pgvector/pgvector:0.8.7-pg16
@@ -31,38 +39,6 @@ services:
       retries: 10
     restart: unless-stopped
 
-  garage:
-    image: dxflrs/garage:v2.5.0
-    ports:
-      - "${GARAGE_PORT:-9000}:9000"
-      - "3901:3901"
-      - "3902:3902"
-      - "3903:3903"
-    environment:
-      NODE_IP: ${GARAGE_NODE_IP:-127.0.0.1}
-      GATEWAY: ${GARAGE_GATEWAY:-127.0.0.1:9000}
-      ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-changeme-garage-admin-token}
-    volumes:
-      - garagedata:/data
-    healthcheck:
-      test: ["CMD", "garage", "cluster", "status"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-
-  garage-init:
-    image: dxflrs/garage:v2.5.0
-    depends_on:
-      garage:
-        condition: service_started
-    entrypoint: >
-      /bin/sh -c "
-      garage --admin-token '${GARAGE_ADMIN_TOKEN:-changeme-garage-admin-token}' bucket create ${GARAGE_BUCKET:-secondbrain};
-      exit 0"
-    restart: on-failure
-
 volumes:
   pgdata:
   redisdata:
-  garagedata:

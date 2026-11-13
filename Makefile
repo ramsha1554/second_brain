@@ -1,25 +1,32 @@
-SHELL := bash
-
 COMPOSE_FILE := infra/compose/docker-compose.yml
 
-# Defaults (overridden by .env if present). Ports exported so compose and psql see them.
+# .env is created by copying .env.example; falls back to .env.example when .env is missing.
+ENV_FILE := $(if $(wildcard .env),.env,.env.example)
+
+# Defaults match .env.example exactly.
 POSTGRES_USER ?= postgres
-POSTGRES_PASSWORD ?= postgres
+POSTGRES_PASSWORD ?= changeme-postgres
 POSTGRES_DB ?= secondbrain
 POSTGRES_PORT ?= 5432
-PGPASSWORD ?= postgres
+PGPASSWORD ?= changeme-postgres
 
+REDIS_HOST ?= localhost
 REDIS_PORT ?= 6379
+REDIS_URL ?= redis://localhost:6379/0
 
-GARAGE_ADMIN_TOKEN ?= changeme-garage-admin-token
-GARAGE_BUCKET ?= secondbrain
-GARAGE_PORT ?= 9000
-GARAGE_NODE_IP ?= 127.0.0.1
-GARAGE_GATEWAY ?= 127.0.0.1:9000
+JWT_SECRET ?= changeme-jwt-signing-key
+JWT_ALGORITHM ?= HS256
+ACCESS_TOKEN_EXPIRE_MINUTES ?= 15
+REFRESH_TOKEN_EXPIRE_MINUTES ?= 43200
 
-export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT PGPASSWORD
-export REDIS_PORT
-export GARAGE_ADMIN_TOKEN GARAGE_BUCKET GARAGE_PORT GARAGE_NODE_IP GARAGE_GATEWAY
+API_HOST ?= 0.0.0.0
+API_PORT ?= 8000
+
+LLM_BASE_URL ?= http://localhost:8080/v1
+LLM_API_KEY ?= changeme-llm-key
+LLM_MODEL ?= placeholder-llm
+EMBEDDING_MODEL_KEY ?= placeholder-embedder
+RERANKER_MODEL_KEY ?= placeholder-reranker
 
 .PHONY: up down logs psql \
 	migrate revision \
@@ -31,16 +38,16 @@ export GARAGE_ADMIN_TOKEN GARAGE_BUCKET GARAGE_PORT GARAGE_NODE_IP GARAGE_GATEWA
 	seed help
 
 up:
-	docker compose -f $(COMPOSE_FILE) up -d
+	docker compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) up -d
 
 down:
-	docker compose -f $(COMPOSE_FILE) down
+	docker compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) down
 
 logs:
-	docker compose -f $(COMPOSE_FILE) logs -f
+	docker compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) logs -f
 
 psql:
-	docker compose -f $(COMPOSE_FILE) exec -e PGPASSWORD="$(PGPASSWORD)" postgres psql -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)"
+	docker compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec -e PGPASSWORD="$(PGPASSWORD)" postgres psql -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)"
 
 migrate:
 	@echo "not available yet: alembic migrations require services/api"
@@ -68,4 +75,5 @@ seed:
 
 help:
 	@echo "Real targets: make up | down | logs | psql"
+	@echo "Create .env first: copy .env.example to .env and adjust values."
 	@echo "All other targets: not available yet (subject not implemented in Phase 0)"
