@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
     ports:
       - "${REDIS_PORT:-6379}:6379"
     command: redis-server --save 60 1 --appendonly no
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
 
   minio:
-    image: minio/minio:latest
+    image: madlabcg/minio:madlab-2026.09
     ports:
       - "${MINIO_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
@@ -50,7 +50,7 @@ services:
     restart: unless-stopped
 
   minio-init:
-    image: minio/mc:latest
+    image: madlabcg/minio:madlab-2026.09
     depends_on:
       minio:
         condition: service_healthy

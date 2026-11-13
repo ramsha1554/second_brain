@@ -48,3 +48,6 @@ Thumbs.db
 data/
 models/
 evals/results/tmp/
+
+# ---- Agent / tooling state ----
+.kilo/
