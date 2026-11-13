@@ -9,7 +9,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-secondbrain}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
+      - ../postgres/init.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-secondbrain}"]
       interval: 5s
@@ -31,37 +31,38 @@ services:
       retries: 10
     restart: unless-stopped
 
-  minio:
-    image: madlabcg/minio:madlab-2026.09
+  garage:
+    image: dxflrs/garage:v2.5.0
     ports:
-      - "${MINIO_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${GARAGE_PORT:-9000}:9000"
+      - "3901:3901"
+      - "3902:3902"
+      - "3903:3903"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      NODE_IP: ${GARAGE_NODE_IP:-127.0.0.1}
+      GATEWAY: ${GARAGE_GATEWAY:-127.0.0.1:9000}
+      ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-changeme-garage-admin-token}
     volumes:
-      - miniodata:/data
-    command: server /data --console-address ":9001"
+      - garagedata:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "garage", "cluster", "status"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: unless-stopped
 
-  minio-init:
-    image: madlabcg/minio:madlab-2026.09
+  garage-init:
+    image: dxflrs/garage:v2.5.0
     depends_on:
-      minio:
-        condition: service_healthy
+      garage:
+        condition: service_started
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set local http://minio:9000 '${MINIO_ROOT_USER:-minioadmin}' '${MINIO_ROOT_PASSWORD:-minioadmin}';
-      /usr/bin/mc mb local/${MINIO_BUCKET:-secondbrain} --ignore-existing;
+      garage --admin-token '${GARAGE_ADMIN_TOKEN:-changeme-garage-admin-token}' bucket create ${GARAGE_BUCKET:-secondbrain};
       exit 0"
     restart: on-failure
 
 volumes:
   pgdata:
   redisdata:
-  miniodata:
+  garagedata:
