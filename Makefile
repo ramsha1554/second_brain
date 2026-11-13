@@ -55,14 +55,24 @@ migrate:
 revision:
 	@echo "not available yet: alembic revisions require services/api"
 
-api-test api-unit api-integration:
-	@echo "not available yet: services/api not implemented"
+api-test:
+	cd services/api && uv run pytest tests/
+
+api-unit:
+	cd services/api && uv run pytest tests/unit/
+
+api-integration:
+	cd services/api && uv run pytest tests/integration/
 
 mobile-test mobile-gen mobile-run-dev:
 	@echo "not available yet: apps/mobile not implemented"
 
-lint fmt:
-	@echo "not available yet: no source to lint"
+lint:
+	cd services/api && uv run ruff check src/ tests/
+	cd services/api && uv run mypy --strict src/
+
+fmt:
+	cd services/api && uv run ruff format --check src/ tests/
 
 openapi check-openapi:
 	@echo "not available yet: services/api not implemented"
