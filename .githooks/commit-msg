@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Enforces: one line, no prefix of any kind, no body.
+msg_file="$1"
+content=$(grep -v '^#' "$msg_file" | sed '/^[[:space:]]*$/d')
+lines=$(printf '%s\n' "$content" | wc -l | tr -d ' ')
+first=$(printf '%s\n' "$content" | head -n1)
+
+case "$first" in Merge\ *|Revert\ *) exit 0 ;; esac
+
+if [ -z "$first" ]; then
+  echo "Commit message is empty." >&2; exit 1
+fi
+if [ "$lines" -gt 1 ]; then
+  echo "Commit message must be ONE line with no description/body." >&2; exit 1
+fi
+if printf '%s' "$first" | grep -Eq '^[A-Za-z]+(\([^)]*\))?!?:[[:space:]]'; then
+  echo "No prefixes like fix:, feat:, refactor:, chore: allowed. Write a plain sentence." >&2; exit 1
+fi
+if [ "${#first}" -gt 72 ]; then
+  echo "Keep the message under 72 characters (currently ${#first})." >&2; exit 1
+fi
+exit 0

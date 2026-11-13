@@ -1,0 +1,50 @@
+# ---- Markdown: ALL .md files are ignored, always ----
+*.md
+GIT-GUIDE.md
+docs/GIT-GUIDE.md
+AGENTS.md
+docs/**/*.md
+
+# ---- Secrets and environment ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- Flutter / Dart ----
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.iml
+.idea/
+.gradle/
+local.properties
+Pods/
+*.g.dart
+*.freezed.dart
+
+# ---- Node / tooling ----
+node_modules/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+
+# ---- Local data and artifacts ----
+*.zip
+data/
+models/
+evals/results/tmp/
