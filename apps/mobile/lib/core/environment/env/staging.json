@@ -1,0 +1,5 @@
+{
+  "appId": "com.ramsha.secondbrain.staging",
+  "appName": "Second Brain Staging",
+  "apiBaseUrl": "https://staging.api.secondbrain.dev"
+}
